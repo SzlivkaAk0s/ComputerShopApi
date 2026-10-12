@@ -31,5 +31,11 @@ namespace ComputerShopApi.Controllers
             }
             return StatusCode(400, new { message = "Sikertelen felvétel", result = osystem });
         }
+
+        [HttpGet("allOsystem")]
+        public object GetAllOsystem()
+        {
+            return StatusCode(200, new { message = "Sikeres lekérdezés", result = _context.Osystems.ToList() });
+        }
     }
 }
