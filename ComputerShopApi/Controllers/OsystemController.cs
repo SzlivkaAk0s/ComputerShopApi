@@ -1,6 +1,7 @@
 ﻿using ComputerShopApi.Models;
 using ComputerShopApi.Models.DTOs;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ComputerShopApi.Controllers
@@ -35,7 +36,57 @@ namespace ComputerShopApi.Controllers
         [HttpGet("allOsystem")]
         public object GetAllOsystem()
         {
-            return StatusCode(200, new { message = "Sikeres lekérdezés", result = _context.Osystems.ToList() });
+            var result = _context.Osystems.ToList();
+            Exception e = new();
+            if (result.Count > 0)
+            {
+                return StatusCode(200, new { message = "Sikeres lekérdezés", result = result });
+            }
+            else if (result.Count < 1)
+            {
+                return StatusCode(200, new { message = "Üres tábla", result = result });
+            }
+            else
+            {
+                return StatusCode(400, new { message = "Hiba a lekérdezésben", result = e.Message });
+            }
+        }
+
+        [HttpPut("updateOsystem")]
+        public object UpdateOsystem([FromQuery]Guid id, [FromBody]UpdateOsystemDTO updateOsystemDTO)
+        {
+            var osystem = _context.Osystems.FirstOrDefault(os => os.Id == id);
+
+            if(osystem != null)
+            {
+                osystem.Name = updateOsystemDTO.Name;
+                osystem.Version = updateOsystemDTO.Version;
+                osystem.UpdateTime = DateTime.Now;
+
+                _context.Osystems.Update(osystem);
+                _context.SaveChanges();
+
+                return StatusCode(200, new { message = "Sikeres frissítés", result = osystem });
+            }
+            else
+            {
+                return StatusCode(404, new { message = "Nincs ilyen ID-vel osystem", result = osystem });
+            }
+        }
+
+        [HttpDelete("deleteOsystem")]
+        public object DeleteOsystem([FromQuery] Guid id)
+        {
+            var osystem = _context.Osystems.SingleOrDefault(os => os.Id == id);
+            Exception e = new();
+
+            if(osystem != null)
+            {
+                _context.Osystems.Remove(osystem);
+                _context.SaveChanges();
+
+                return StatusCode(200, new { message = "Sikeres törlés", result = osystem });
+            }
         }
     }
 }
